@@ -1,9 +1,12 @@
-name: Generate Snake
+name: Generate Snake Animation
 
 on:
   schedule:
-    - cron: "0 0 * * *"
-  workflow_dispatch:
+    - cron: "0 0 * * *"   # Runs daily at midnight UTC
+  workflow_dispatch:        # Allows manual trigger from Actions tab
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -15,6 +18,7 @@ jobs:
           outputs: |
             dist/github-contribution-grid-snake.svg
             dist/github-contribution-grid-snake-dark.svg?palette=github-dark
+
       - uses: crazy-max/ghaction-github-pages@v3
         with:
           target_branch: output
