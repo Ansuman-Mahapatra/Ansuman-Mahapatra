@@ -1,0 +1,48 @@
+name: Tic-Tac-Toe
+
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  play:
+    runs-on: ubuntu-latest
+    if: startsWith(github.event.issue.title, 'ttt-play-')
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: output
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Play Move & Update Board
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_USER: ${{ github.event.issue.user.login }}
+        run: node ${{ github.workspace }}/.github/scripts/tictactoe.js
+
+      - name: Push Updated Board SVG
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add tictactoe.svg
+          git diff --cached --quiet || git commit -m "♟️ ${{ github.event.issue.user.login }} made a move"
+          git push
+
+      - name: Close Issue with Comment
+        uses: peter-evans/close-issue@v3
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          comment: |
+            ✅ Move registered, @${{ github.event.issue.user.login }}!
+            Check the updated board on [my profile](https://github.com/ansuman-mahapatra). 🎮
